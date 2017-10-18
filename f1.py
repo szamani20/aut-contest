@@ -2,6 +2,7 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 import matplotlib.pyplot as plt
+from io import StringIO
 from scipy.constants.constants import minute
 
 
@@ -15,11 +16,11 @@ class Transaction:
         self.transaction_date = tdate
         self.transaction_time = ttime
         self.terminal_id = terminal
-        self.transaction_amount = tamount
-        self.transaction_remain = tremain
+        self.transaction_amount = int(float(tamount[:-4]))
+        self.transaction_remain = int(float(tremain[:-4]))
         self.state = state
         self.transaction_code = tcode
-        p = Point(tdate, ttime, tamount)
+        p = Point(tdate, ttime, self.transaction_remain)
         list_of_points.append(p)
         a = None
 
@@ -74,24 +75,47 @@ class Customer:
 
 
 class Point:
-    def __init__(self, tdate, ttime, amount):
+    def __init__(self, tdate, ttime, remain):
         t = dt.datetime.strptime(tdate, '(%Y, %m, %d)')
-        t = t.replace(second=int(ttime) % 100,
-                      minute=int((int(ttime) / 100) % 100),
-                      hour=int((int(ttime) / 10000) % 100))
-        self.transaction_date = tdate
-        self.transaction_time = ttime
-        self.amount = amount
+        try:
+            t = t.replace(second=int(ttime) % 100,
+                          minute=int((int(ttime) / 100) % 100),
+                          hour=int((int(ttime) / 10000) % 100))
+        except Exception as e:
+            if not str(ttime).startswith('24'):
+                print(ttime)
+            t.replace(second=0,
+                      minute=0,
+                      hour=0)
+        self.transaction_date = t.date()
+        self.transaction_datetime = t
+        self.transaction_time = t.time()
+        self.remain = remain
 
 
 filename = 'month_1.csv'
+account_working_on = 'zhanghu_51356'
 list_of_transactions = []
 list_of_accounts = []
 list_of_customers = []
 list_of_points = []
 
-df = pd.read_csv(filename, nrows=100,
+s = StringIO()
+pp = 0
+with open(filename) as f:
+    for line in f:
+        if pp == 0:
+            s.write(line)
+        pp += 1
+        if account_working_on in line:
+            s.write(line)
+s.seek(0)
+df = pd.read_csv(s,
                  index_col=[0])
+# df = pd.read_csv(filename,
+#                  nrows=100,
+#                  index_col=[0])
+
 
 # df = pd.read_csv(filename, usecols=[0, 2, 3], nrows=100,
 #                  index_col=[1],
@@ -115,9 +139,20 @@ for index, row in df.iterrows():
                     row['state'],
                     row['transactionCode'])
     list_of_transactions.append(t)
-#
-# d = {}
-# for p in list_of_points:
-#
-#
-# pd.DataFrame(np.asarray())
+
+x_data = []
+y_data = []
+
+for i in list_of_accounts:
+    if i.account_id == account_working_on:
+        for p in i.points:
+            x_data.append(p.transaction_datetime)
+            y_data.append(p.remain)
+
+plt.xlabel('Date')
+plt.plot_date(x_data,
+              y_data,
+              fmt='-')
+plt.ylabel('Remain')
+plt.legend()
+plt.show()
