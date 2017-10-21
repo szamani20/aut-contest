@@ -127,6 +127,8 @@ df = pd.read_csv(s,
 # df.replace()
 # df.to_csv('month11.csv')
 
+df.to_csv(account_working_on+'.csv')
+
 for index, row in df.iterrows():
     # print(index, row)
     t = Transaction(index,
@@ -145,6 +147,7 @@ y_data = []
 
 for i in list_of_accounts:
     if i.account_id == account_working_on:
+        i.points.sort(key=lambda x: x.transaction_datetime)
         for p in i.points:
             x_data.append(p.transaction_datetime)
             y_data.append(p.remain)
