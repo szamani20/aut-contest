@@ -1,5 +1,6 @@
 import pandas as pd
 import datetime as dt
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 from io import StringIO
@@ -83,21 +84,20 @@ class Point:
         return hash(self.transaction_datetime.ctime())
 
 
-print("st")
+now = int(round(time.time()))
 filename = 'month_1.csv'
 list_of_accounts = dict()
 list_of_customers = dict()
 
 df = pd.read_csv(filename,
                  index_col=[0])
-
-pp = 0
-print(pp)
+pp =0
+print(int(round(time.time())) - now)
 for index, row in df.iterrows():
     # print(index, row)
     pp += 1
     if pp % 1000 == 0:
-        print(pp)
+        print("pp: "+str(pp/1000)+" time: "+str(int(round(time.time()))- now))
     t = Transaction(index,
                     row['accountId'],
                     row['transactionDate'],
