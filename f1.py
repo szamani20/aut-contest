@@ -7,13 +7,13 @@ from io import StringIO
 from scipy.constants.constants import minute
 
 
-def Transaction(cid, aid,
+def transaction(cid, aid,
                 tdate, ttime,
                 terminal, tamount,
                 tremain, state, tcode):
-    # itransaction_amount = int(float(tamount[:-4]))
-    itransaction_remain = int(float(tremain[:-4]))
-    p = Point(tdate, ttime, itransaction_remain)
+    # i_transaction_amount = float(tamount[:-4])
+    i_transaction_remain = float(tremain[:-4])
+    p = Point(tdate, ttime, i_transaction_remain)
     a = Account(aid)
     if aid not in list_of_accounts:
         list_of_accounts[aid] = a
@@ -91,22 +91,22 @@ list_of_customers = dict()
 
 df = pd.read_csv(filename,
                  index_col=[0])
-pp =0
+pp = 0
 print(int(round(time.time())) - now)
 for index, row in df.iterrows():
     # print(index, row)
     pp += 1
     if pp % 1000 == 0:
-        print("pp: "+str(pp/1000)+" time: "+str(int(round(time.time()))- now))
-    t = Transaction(index,
-                    row['accountId'],
-                    row['transactionDate'],
-                    row['transactionTime'],
-                    row['terminalId'],
-                    row['transactionAmount'],
-                    row['transactionRemain'],
-                    row['state'],
-                    row['transactionCode'])
+        print("pp: " + str(pp / 1000) + " time: " + str(int(round(time.time())) - now))
+    transaction(index,
+                row['accountId'],
+                row['transactionDate'],
+                row['transactionTime'],
+                row['terminalId'],
+                row['transactionAmount'],
+                row['transactionRemain'],
+                row['state'],
+                row['transactionCode'])
 
 
     # x_data = []
