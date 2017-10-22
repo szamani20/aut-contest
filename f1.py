@@ -23,7 +23,7 @@ class Transaction:
         p = Point(tdate, ttime, self.transaction_remain)
         a = Account(aid)
 
-        if a not in list_of_accounts:
+        if aid not in list_of_accounts:
             list_of_accounts[aid] = a
         else:
             a = list_of_accounts[aid]
@@ -31,12 +31,12 @@ class Transaction:
         a.points[p.transaction_datetime] = p
 
         c = Customer(cid)
-        if c not in list_of_customers:
+        if cid not in list_of_customers:
             list_of_customers[cid] = c
         else:
             c = list_of_customers[cid]
 
-        if a not in c.accounts:
+        if aid not in c.accounts:
             c.accounts[aid] = a
 
     def __hash__(self):
