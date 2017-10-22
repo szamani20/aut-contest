@@ -6,41 +6,26 @@ from io import StringIO
 from scipy.constants.constants import minute
 
 
-class Transaction:
-    def __init__(self, cid, aid,
-                 tdate, ttime,
-                 terminal, tamount,
-                 tremain, state, tcode):
-        self.customer_id = cid
-        self.account_id = aid
-        self.transaction_date = tdate
-        self.transaction_time = ttime
-        self.terminal_id = terminal
-        self.transaction_amount = int(float(tamount[:-4]))
-        self.transaction_remain = int(float(tremain[:-4]))
-        self.state = state
-        self.transaction_code = tcode
-        p = Point(tdate, ttime, self.transaction_remain)
-        a = Account(aid)
-
-        if aid not in list_of_accounts:
-            list_of_accounts[aid] = a
-        else:
-            a = list_of_accounts[aid]
-
-        a.points[p.transaction_datetime] = p
-
-        c = Customer(cid)
-        if cid not in list_of_customers:
-            list_of_customers[cid] = c
-        else:
-            c = list_of_customers[cid]
-
-        if aid not in c.accounts:
-            c.accounts[aid] = a
-
-    def __hash__(self):
-        return hash(self.customer_id + self.account_id)
+def Transaction(cid, aid,
+                tdate, ttime,
+                terminal, tamount,
+                tremain, state, tcode):
+    # itransaction_amount = int(float(tamount[:-4]))
+    itransaction_remain = int(float(tremain[:-4]))
+    p = Point(tdate, ttime, itransaction_remain)
+    a = Account(aid)
+    if aid not in list_of_accounts:
+        list_of_accounts[aid] = a
+    else:
+        a = list_of_accounts[aid]
+    a.points[p.transaction_datetime] = p
+    c = Customer(cid)
+    if cid not in list_of_customers:
+        list_of_customers[cid] = c
+    else:
+        c = list_of_customers[cid]
+    if aid not in c.accounts:
+        c.accounts[aid] = a
 
 
 class Account:
@@ -98,6 +83,7 @@ class Point:
         return hash(self.transaction_datetime.ctime())
 
 
+print("st")
 filename = 'month_1.csv'
 list_of_accounts = dict()
 list_of_customers = dict()
@@ -106,6 +92,7 @@ df = pd.read_csv(filename,
                  index_col=[0])
 
 pp = 0
+print(pp)
 for index, row in df.iterrows():
     # print(index, row)
     pp += 1
@@ -122,20 +109,20 @@ for index, row in df.iterrows():
                     row['transactionCode'])
 
 
-# x_data = []
-# y_data = []
-#
-# for i in list_of_accounts:
-#     if i.account_id == account_working_on:
-#         i.points.sort(key=lambda x: x.transaction_datetime)
-#         for p in i.points:
-#             x_data.append(p.transaction_datetime)
-#             y_data.append(p.remain)
-#
-# plt.xlabel('Date')
-# plt.plot_date(x_data,
-#               y_data,
-#               fmt='-')
-# plt.ylabel('Remain')
-# plt.legend()
-# plt.show()
+    # x_data = []
+    # y_data = []
+    #
+    # for i in list_of_accounts:
+    #     if i.account_id == account_working_on:
+    #         i.points.sort(key=lambda x: x.transaction_datetime)
+    #         for p in i.points:
+    #             x_data.append(p.transaction_datetime)
+    #             y_data.append(p.remain)
+    #
+    # plt.xlabel('Date')
+    # plt.plot_date(x_data,
+    #               y_data,
+    #               fmt='-')
+    # plt.ylabel('Remain')
+    # plt.legend()
+    # plt.show()
