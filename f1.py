@@ -21,30 +21,24 @@ class Transaction:
         self.state = state
         self.transaction_code = tcode
         p = Point(tdate, ttime, self.transaction_remain)
-        list_of_points.add(p)
+        list_of_points[p.transaction_datetime.ctime()] = p
         a = None
 
-        if aid not in [i.account_id for i in list_of_accounts]:
+        if aid not in list_of_accounts:
             a = Account(aid)
-            list_of_accounts.add(a)
+            list_of_accounts[aid] = a
         else:
-            for ac in list_of_accounts:
-                if ac.account_id == aid:
-                    a = ac
-                    break
+            a = list_of_accounts[aid]
 
         a.points.append(p)
 
-        if cid not in [i.customer_id for i in list_of_customers]:
+        if cid not in list_of_customers:
             c = Customer(cid)
             c.accounts.append(a)
-            list_of_customers.add(c)
+            list_of_customers[cid] = c
         else:
-            for c in list_of_customers:
-                if c.customer_id == cid:
-                    if aid not in [j.account_id for j in c.accounts]:
-                        c.accounts.append(a)
-                    break
+            c = list_of_customers[cid]
+            c.accounts.append(a)
 
     def __hash__(self):
         return hash(self.customer_id + self.account_id)
@@ -106,43 +100,20 @@ class Point:
 
 
 filename = 'month_1.csv'
-account_working_on = 'zhanghu_51355'
-list_of_transactions = set()
-list_of_accounts = set()
-list_of_customers = set()
-list_of_points = set()
+list_of_accounts = dict()
+list_of_account_ids = dict()
+list_of_customers = dict()
+list_of_points = dict()
 
-s = StringIO()
-pp = 0
-with open(filename) as f:
-    for line in f:
-        if pp == 0:
-            s.write(line)
-        pp += 1
-        if account_working_on in line:
-            s.write(line)
-s.seek(0)
-df = pd.read_csv(s,
+df = pd.read_csv(filename,
                  index_col=[0])
-# df = pd.read_csv(filename,
-#                  nrows=100,
-#                  index_col=[0])
 
-
-# df = pd.read_csv(filename, usecols=[0, 2, 3], nrows=100,
-#                  index_col=[1],
-#                  date_parser=lambda x: pd.to_datetime(x, format='(%Y, %m, %d)'),
-#                  parse_dates=['transactionDate'])
-# df.set_index('transactionDate', inplace=True)
-# print(df.index[2])
-# print(df.loc[1]['customerId'])
-# df.replace()
-# df.to_csv('month11.csv')
-
-df.to_csv(account_working_on + '.csv')
-
+pp = 0
 for index, row in df.iterrows():
     # print(index, row)
+    pp += 1
+    if pp % 1000 == 0:
+        print(pp)
     t = Transaction(index,
                     row['accountId'],
                     row['transactionDate'],
@@ -152,22 +123,22 @@ for index, row in df.iterrows():
                     row['transactionRemain'],
                     row['state'],
                     row['transactionCode'])
-    list_of_transactions.add(t)
 
-x_data = []
-y_data = []
 
-for i in list_of_accounts:
-    if i.account_id == account_working_on:
-        i.points.sort(key=lambda x: x.transaction_datetime)
-        for p in i.points:
-            x_data.append(p.transaction_datetime)
-            y_data.append(p.remain)
-
-plt.xlabel('Date')
-plt.plot_date(x_data,
-              y_data,
-              fmt='-')
-plt.ylabel('Remain')
-plt.legend()
-plt.show()
+# x_data = []
+# y_data = []
+#
+# for i in list_of_accounts:
+#     if i.account_id == account_working_on:
+#         i.points.sort(key=lambda x: x.transaction_datetime)
+#         for p in i.points:
+#             x_data.append(p.transaction_datetime)
+#             y_data.append(p.remain)
+#
+# plt.xlabel('Date')
+# plt.plot_date(x_data,
+#               y_data,
+#               fmt='-')
+# plt.ylabel('Remain')
+# plt.legend()
+# plt.show()
