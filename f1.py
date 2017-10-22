@@ -84,6 +84,31 @@ class Point:
         return hash(self.transaction_datetime.ctime())
 
 
+def show_plot(account_id):
+    x_data = []
+    y_data = []
+
+    if account_id not in list_of_accounts:
+        print('Account ID invalid')
+        return
+
+    a = list_of_accounts[account_id]
+    list_of_points = sorted(a.points.values(), key=lambda x: x.transaction_datetime)
+
+    for p in list_of_points:
+        x_data.append(p.transaction_datetime)
+        y_data.append(p.remain)
+        print(p.transaction_datetime, p.remain)
+
+    plt.xlabel('Date')
+    plt.plot_date(x_data,
+                  y_data,
+                  fmt='-')
+    plt.ylabel('Remain')
+    plt.legend()
+    plt.show()
+
+
 now = int(round(time.time()))
 filename = 'month_1.csv'
 list_of_accounts = dict()
@@ -92,13 +117,15 @@ list_of_customers = dict()
 df = pd.read_csv(filename,
                  index_col=[0])
 pp = 0
+aa = 'zhanghu_51355'
 print(int(round(time.time())) - now)
 for index, row in df.iterrows():
     # print(index, row)
     pp += 1
     if pp % 1000 == 0:
         print("pp: " + str(pp / 1000) + " time: " + str(int(round(time.time())) - now))
-    transaction(index,
+    if index == aa:
+        transaction(index,
                 row['accountId'],
                 row['transactionDate'],
                 row['transactionTime'],
@@ -107,22 +134,4 @@ for index, row in df.iterrows():
                 row['transactionRemain'],
                 row['state'],
                 row['transactionCode'])
-
-
-    # x_data = []
-    # y_data = []
-    #
-    # for i in list_of_accounts:
-    #     if i.account_id == account_working_on:
-    #         i.points.sort(key=lambda x: x.transaction_datetime)
-    #         for p in i.points:
-    #             x_data.append(p.transaction_datetime)
-    #             y_data.append(p.remain)
-    #
-    # plt.xlabel('Date')
-    # plt.plot_date(x_data,
-    #               y_data,
-    #               fmt='-')
-    # plt.ylabel('Remain')
-    # plt.legend()
-    # plt.show()
+show_plot(aa)
