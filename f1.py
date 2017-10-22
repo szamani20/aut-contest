@@ -16,8 +16,8 @@ class Transaction:
         self.transaction_date = tdate
         self.transaction_time = ttime
         self.terminal_id = terminal
-        self.transaction_amount = int(float(tamount[:-4]))
-        self.transaction_remain = int(float(tremain[:-4]))
+        self.transaction_amount = (float(tamount[:-4]))
+        self.transaction_remain = (float(tremain[:-4]))
         self.state = state
         self.transaction_code = tcode
         p = Point(tdate, ttime, self.transaction_remain)
