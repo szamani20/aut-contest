@@ -1,53 +1,38 @@
 import pandas as pd
 import datetime as dt
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 from io import StringIO
 from scipy.constants.constants import minute
 
 
-class Transaction:
-    def __init__(self, cid, aid,
-                 tdate, ttime,
-                 terminal, tamount,
-                 tremain, state, tcode):
-        self.customer_id = cid
-        self.account_id = aid
-        self.transaction_date = tdate
-        self.transaction_time = ttime
-        self.terminal_id = terminal
-        self.transaction_amount = (float(tamount[:-4]))
-        self.transaction_remain = (float(tremain[:-4]))
-        self.state = state
-        self.transaction_code = tcode
-        p = Point(tdate, ttime, self.transaction_remain)
-        list_of_points[p.transaction_datetime.ctime()] = p
-        a = None
-
-        if aid not in list_of_accounts:
-            a = Account(aid)
-            list_of_accounts[aid] = a
-        else:
-            a = list_of_accounts[aid]
-
-        a.points.append(p)
-
-        if cid not in list_of_customers:
-            c = Customer(cid)
-            c.accounts.append(a)
-            list_of_customers[cid] = c
-        else:
-            c = list_of_customers[cid]
-            c.accounts.append(a)
-
-    def __hash__(self):
-        return hash(self.customer_id + self.account_id)
+def transaction(cid, aid,
+                tdate, ttime,
+                terminal, tamount,
+                tremain, state, tcode):
+    # i_transaction_amount = float(tamount[:-4])
+    i_transaction_remain = float(tremain[:-4])
+    p = Point(tdate, ttime, i_transaction_remain)
+    a = Account(aid)
+    if aid not in list_of_accounts:
+        list_of_accounts[aid] = a
+    else:
+        a = list_of_accounts[aid]
+    a.points[p.transaction_datetime] = p
+    c = Customer(cid)
+    if cid not in list_of_customers:
+        list_of_customers[cid] = c
+    else:
+        c = list_of_customers[cid]
+    if aid not in c.accounts:
+        c.accounts[aid] = a
 
 
 class Account:
     def __init__(self, aid):
         self.account_id = aid
-        self.points = []
+        self.points = dict()
         # self.customers = []
 
     def __eq__(self, other):
@@ -64,7 +49,7 @@ class Account:
 class Customer:
     def __init__(self, cid):
         self.customer_id = cid
-        self.accounts = []
+        self.accounts = dict()
 
     def __eq__(self, other):
         if other is None:
@@ -99,46 +84,51 @@ class Point:
         return hash(self.transaction_datetime.ctime())
 
 
+def show_plot(account_id):
+    x_data = []
+    y_data = []
+
+    if account_id not in list_of_accounts:
+        print('Account ID invalid')
+        return
+
+    a = list_of_accounts[account_id]
+    list_of_points = sorted(a.points.values(), key=lambda x: x.transaction_datetime)
+
+    for p in list_of_points:
+        x_data.append(p.transaction_datetime)
+        y_data.append(p.remain)
+        print(p.transaction_datetime, p.remain)
+
+    plt.xlabel('Date')
+    plt.plot_date(x_data,
+                  y_data,
+                  fmt='-')
+    plt.ylabel('Remain')
+    plt.legend()
+    plt.show()
+
+
+now = int(round(time.time()))
 filename = 'month_1.csv'
 list_of_accounts = dict()
-list_of_account_ids = dict()
 list_of_customers = dict()
-list_of_points = dict()
 
 df = pd.read_csv(filename,
                  index_col=[0])
-
 pp = 0
+print(int(round(time.time())) - now)
 for index, row in df.iterrows():
     # print(index, row)
     pp += 1
     if pp % 1000 == 0:
-        print(pp)
-    t = Transaction(index,
-                    row['accountId'],
-                    row['transactionDate'],
-                    row['transactionTime'],
-                    row['terminalId'],
-                    row['transactionAmount'],
-                    row['transactionRemain'],
-                    row['state'],
-                    row['transactionCode'])
-
-
-# x_data = []
-# y_data = []
-#
-# for i in list_of_accounts:
-#     if i.account_id == account_working_on:
-#         i.points.sort(key=lambda x: x.transaction_datetime)
-#         for p in i.points:
-#             x_data.append(p.transaction_datetime)
-#             y_data.append(p.remain)
-#
-# plt.xlabel('Date')
-# plt.plot_date(x_data,
-#               y_data,
-#               fmt='-')
-# plt.ylabel('Remain')
-# plt.legend()
-# plt.show()
+        print("pp: " + str(pp / 1000) + " time: " + str(int(round(time.time())) - now))
+    transaction(index,
+                row['accountId'],
+                row['transactionDate'],
+                row['transactionTime'],
+                row['terminalId'],
+                row['transactionAmount'],
+                row['transactionRemain'],
+                row['state'],
+                row['transactionCode'])
