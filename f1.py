@@ -21,12 +21,12 @@ class Transaction:
         self.state = state
         self.transaction_code = tcode
         p = Point(tdate, ttime, self.transaction_remain)
-        list_of_points.append(p)
+        list_of_points.add(p)
         a = None
 
         if aid not in [i.account_id for i in list_of_accounts]:
             a = Account(aid)
-            list_of_accounts.append(a)
+            list_of_accounts.add(a)
         else:
             for ac in list_of_accounts:
                 if ac.account_id == aid:
@@ -38,13 +38,16 @@ class Transaction:
         if cid not in [i.customer_id for i in list_of_customers]:
             c = Customer(cid)
             c.accounts.append(a)
-            list_of_customers.append(c)
+            list_of_customers.add(c)
         else:
             for c in list_of_customers:
                 if c.customer_id == cid:
                     if aid not in [j.account_id for j in c.accounts]:
                         c.accounts.append(a)
                     break
+
+    def __hash__(self):
+        return hash(self.customer_id + self.account_id)
 
 
 class Account:
@@ -60,6 +63,9 @@ class Account:
             return True
         return False
 
+    def __hash__(self):
+        return hash(self.account_id)
+
 
 class Customer:
     def __init__(self, cid):
@@ -72,6 +78,9 @@ class Customer:
         if other.customer_id == self.customer_id:
             return True
         return False
+
+    def __hash__(self):
+        return hash(self.customer_id)
 
 
 class Point:
@@ -92,13 +101,16 @@ class Point:
         self.transaction_time = t.time()
         self.remain = remain
 
+    def __hash__(self):
+        return hash(self.transaction_datetime.ctime())
+
 
 filename = 'month_1.csv'
-account_working_on = 'zhanghu_51356'
-list_of_transactions = []
-list_of_accounts = []
-list_of_customers = []
-list_of_points = []
+account_working_on = 'zhanghu_51355'
+list_of_transactions = set()
+list_of_accounts = set()
+list_of_customers = set()
+list_of_points = set()
 
 s = StringIO()
 pp = 0
@@ -127,7 +139,7 @@ df = pd.read_csv(s,
 # df.replace()
 # df.to_csv('month11.csv')
 
-df.to_csv(account_working_on+'.csv')
+df.to_csv(account_working_on + '.csv')
 
 for index, row in df.iterrows():
     # print(index, row)
@@ -140,7 +152,7 @@ for index, row in df.iterrows():
                     row['transactionRemain'],
                     row['state'],
                     row['transactionCode'])
-    list_of_transactions.append(t)
+    list_of_transactions.add(t)
 
 x_data = []
 y_data = []
