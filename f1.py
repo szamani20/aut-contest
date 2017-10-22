@@ -21,24 +21,23 @@ class Transaction:
         self.state = state
         self.transaction_code = tcode
         p = Point(tdate, ttime, self.transaction_remain)
-        list_of_points[p.transaction_datetime.ctime()] = p
-        a = None
+        a = Account(aid)
 
-        if aid not in list_of_accounts:
-            a = Account(aid)
+        if a not in list_of_accounts:
             list_of_accounts[aid] = a
         else:
             a = list_of_accounts[aid]
 
-        a.points.append(p)
+        a.points[p.transaction_datetime] = p
 
-        if cid not in list_of_customers:
-            c = Customer(cid)
-            c.accounts.append(a)
+        c = Customer(cid)
+        if c not in list_of_customers:
             list_of_customers[cid] = c
         else:
             c = list_of_customers[cid]
-            c.accounts.append(a)
+
+        if a not in c.accounts:
+            c.accounts[aid] = a
 
     def __hash__(self):
         return hash(self.customer_id + self.account_id)
@@ -47,7 +46,7 @@ class Transaction:
 class Account:
     def __init__(self, aid):
         self.account_id = aid
-        self.points = []
+        self.points = dict()
         # self.customers = []
 
     def __eq__(self, other):
@@ -64,7 +63,7 @@ class Account:
 class Customer:
     def __init__(self, cid):
         self.customer_id = cid
-        self.accounts = []
+        self.accounts = dict()
 
     def __eq__(self, other):
         if other is None:
@@ -101,9 +100,7 @@ class Point:
 
 filename = 'month_1.csv'
 list_of_accounts = dict()
-list_of_account_ids = dict()
 list_of_customers = dict()
-list_of_points = dict()
 
 df = pd.read_csv(filename,
                  index_col=[0])
