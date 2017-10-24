@@ -8,6 +8,14 @@ from io import StringIO
 from scipy.constants.constants import minute
 
 
+class Node:
+    def __init__(self, aid, num):
+        self.account_id = aid
+        self.mnum = num
+        self.points = dict()
+        self.balance_avg = 1
+
+
 def transaction(cid, aid,
                 tdate, ttime,
                 terminal, tamount,
@@ -120,7 +128,7 @@ def extract_points_from_aid(aid):
     max_x = -min_x
 
     # because unordered
-    for point in list_of_accounts[aid].points.values():
+    for point in sorted(list_of_accounts[aid].points.values(), key=lambda p: p.transaction_datetime):
         x_val = point.seconds_from_begin()
         y_val = point.remain
         if x_val > max_x:
@@ -161,8 +169,10 @@ print(int(round(time.time())) - now)
 for index, row in df.iterrows():
     # print(index, row)
     pp += 1
-    if pp % 1000 == 0:
-        print("pp: " + str(pp / 1000) + " time: " + str(int(round(time.time())) - now))
+    if pp > 10000:
+        break
+    # if pp % 1000 == 0:
+    #    print("pp: " + str(pp / 1000) + " time: " + str(int(round(time.time())) - now))
     transaction(index,
                 row['accountId'],
                 row['transactionDate'],
@@ -172,3 +182,13 @@ for index, row in df.iterrows():
                 row['transactionRemain'],
                 row['state'],
                 row['transactionCode'])
+
+print("pp: " + str(pp / 1000) + " time: " + str(int(round(time.time())) - now))
+
+print(integral_func('zhanghu_51317'))
+print(std_func(('zhanghu_51317')))
+show_plot('zhanghu_51317')
+
+# print(integral_func('zhanghu_51318'))
+# print(std_func(('zhanghu_51318')))
+# show_plot('zhanghu_51318')
