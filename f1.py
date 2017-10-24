@@ -2,18 +2,11 @@ import pandas as pd
 import datetime as dt
 import time
 import numpy as np
-from scipy.interpolate import InterpolatedUnivariateSpline
 import matplotlib.pyplot as plt
+from sklearn import linear_model
 from io import StringIO
 from scipy.constants.constants import minute
-
-
-class Node:
-    def __init__(self, aid, num):
-        self.account_id = aid
-        self.mnum = num
-        self.points = dict()
-        self.balance_avg = 1
+from scipy.interpolate import InterpolatedUnivariateSpline
 
 
 def transaction(cid, aid,
@@ -84,9 +77,9 @@ class Point:
             t.replace(second=0,
                       minute=0,
                       hour=0)
-        self.transaction_date = t.date()
+        # self.transaction_date = t.date()
+        # self.transaction_time = t.time()
         self.transaction_datetime = t
-        self.transaction_time = t.time()
         self.remain = remain
 
     def seconds_from_begin(self):
@@ -94,6 +87,14 @@ class Point:
 
     def __hash__(self):
         return hash(self.transaction_datetime.ctime())
+
+
+class Node:
+    def __init__(self, aid, num):
+        self.account_id = aid
+        self.mnum = num
+        self.points = dict()
+        self.balance_avg = 1
 
 
 def show_plot(account_id):
@@ -104,13 +105,14 @@ def show_plot(account_id):
         print('Account ID invalid')
         return
 
+        # for p in list_of_accounts[account_id].points:
     a = list_of_accounts[account_id]
     list_of_points = sorted(a.points.values(), key=lambda x: x.transaction_datetime)
 
     for p in list_of_points:
         x_data.append(p.transaction_datetime)
         y_data.append(p.remain)
-        print(p.transaction_datetime, p.remain)
+        # print(p.transaction_datetime, p.remain)
 
     plt.xlabel('Date')
     plt.plot_date(x_data,
@@ -144,17 +146,20 @@ def extract_points_from_aid(aid):
     return x, y, min_x, max_x
 
 
+def std_func(aid, balance):
+    x, y, min_x, max_x = extract_points_from_aid(aid)
+    y2 = []
+    for yy in y:
+        y2.append((yy-balance) ** 2)
+
+    f = InterpolatedUnivariateSpline(x, y2, k=1)
+    return f.integral(min_x, max_x) / (max_x - min_x)
+
+
 def integral_func(aid):
     x, y, min_x, max_x = extract_points_from_aid(aid)
     f = InterpolatedUnivariateSpline(x, y, k=1)
     return f.integral(min_x, max_x) / (max_x - min_x)
-
-
-def std_func(aid):
-    x, y, min_x, max_x = extract_points_from_aid(aid)
-    # TODO: X or Y ???
-    # FIXME
-    return np.std(np.array(y))
 
 
 now = int(round(time.time()))
@@ -167,10 +172,7 @@ df = pd.read_csv(filename,
 pp = 0
 print(int(round(time.time())) - now)
 for index, row in df.iterrows():
-    # print(index, row)
     pp += 1
-    if pp > 10000:
-        break
     # if pp % 1000 == 0:
     #    print("pp: " + str(pp / 1000) + " time: " + str(int(round(time.time())) - now))
     transaction(index,
@@ -189,6 +191,16 @@ print(integral_func('zhanghu_51317'))
 print(std_func(('zhanghu_51317')))
 show_plot('zhanghu_51317')
 
-# print(integral_func('zhanghu_51318'))
-# print(std_func(('zhanghu_51318')))
-# show_plot('zhanghu_51318')
+print(integral_func('zhanghu_51318'))
+print(std_func(('zhanghu_51318')))
+show_plot('zhanghu_51318')
+
+print(integral_func('zhanghu_51319'))
+print(std_func(('zhanghu_51319')))
+show_plot('zhanghu_51319')
+
+# for x in range(0, 3595):
+#    if len(list_of_customers['guke_' + str(x)].accounts) > 1:
+#        print('guke_' + str(x) + str(len(list_of_customers['guke_' + str(x)].accounts)))
+
+print("END time: " + str(int(round(time.time())) - now))
