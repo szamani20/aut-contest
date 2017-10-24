@@ -2,6 +2,7 @@ import pandas as pd
 import datetime as dt
 import time
 import numpy as np
+from scipy.interpolate import InterpolatedUnivariateSpline
 import matplotlib.pyplot as plt
 from io import StringIO
 from scipy.constants.constants import minute
@@ -80,6 +81,9 @@ class Point:
         self.transaction_time = t.time()
         self.remain = remain
 
+    def seconds_from_begin(self):
+        return (self.transaction_datetime - dt.datetime.utcfromtimestamp(0)).total_seconds()
+
     def __hash__(self):
         return hash(self.transaction_datetime.ctime())
 
@@ -107,6 +111,42 @@ def show_plot(account_id):
     plt.ylabel('Remain')
     plt.legend()
     plt.show()
+
+
+def extract_points_from_aid(aid):
+    x = []
+    y = []
+    min_x = int(1e20)
+    max_x = -min_x
+
+    # because unordered
+    for point in list_of_accounts[aid].points.values():
+        x_val = point.seconds_from_begin()
+        y_val = point.remain
+        if x_val > max_x:
+            max_x = x_val
+        if x_val < min_x:
+            min_x = x_val
+        x.append(x_val)
+        y.append(y_val)
+
+    x = np.array(x)
+    y = np.array(y)
+
+    return x, y, min_x, max_x
+
+
+def integral_func(aid):
+    x, y, min_x, max_x = extract_points_from_aid(aid)
+    f = InterpolatedUnivariateSpline(x, y, k=1)
+    return f.integral(min_x, max_x) / (max_x - min_x)
+
+
+def std_func(aid):
+    x, y, min_x, max_x = extract_points_from_aid(aid)
+    # TODO: X or Y ???
+    # FIXME
+    return np.std(np.array(y))
 
 
 now = int(round(time.time()))
