@@ -35,6 +35,8 @@ class Account:
     def __init__(self, aid):
         self.account_id = aid
         self.points = dict()
+        self.allpoints = dict()
+        self.nodes = []
         # self.customers = []
 
     def __eq__(self, other):
@@ -93,9 +95,9 @@ class Node:
     def __init__(self, aid, num):
         self.account_id = aid
         self.mnum = num
-        self.points = dict()
-        self.balance_avg = 1
-
+        #self.points = dict()
+        self.balance_avg = integral_func(aid)
+        self.balance_std = std_func(aid)
 
 def show_plot(account_id):
     x_data = []
@@ -107,7 +109,7 @@ def show_plot(account_id):
 
         # for p in list_of_accounts[account_id].points:
     a = list_of_accounts[account_id]
-    list_of_points = sorted(a.points.values(), key=lambda x: x.transaction_datetime)
+    list_of_points = sorted(a.allpoints.values(), key=lambda x: x.transaction_datetime)
 
     for p in list_of_points:
         x_data.append(p.transaction_datetime)
@@ -160,18 +162,17 @@ def std_func(aid):
 
 
 now = int(round(time.time()))
-filename = 'month_1.csv'
 list_of_accounts = dict()
 list_of_customers = dict()
 
+filename = 'month_1.csv'
 df = pd.read_csv(filename,
                  index_col=[0])
 pp = 0
 print(int(round(time.time())) - now)
+pm = 1
 for index, row in df.iterrows():
     pp += 1
-    # if pp % 1000 == 0:
-    #    print("pp: " + str(pp / 1000) + " time: " + str(int(round(time.time())) - now))
     transaction(index,
                 row['accountId'],
                 row['transactionDate'],
@@ -181,6 +182,109 @@ for index, row in df.iterrows():
                 row['transactionRemain'],
                 row['state'],
                 row['transactionCode'])
+
+for a in list_of_accounts:
+    aa = list_of_accounts[a]
+    nnode = Node(aa.account_id, pm)
+    aa.nodes.append(nnode)
+    aa.allpoints.update(aa.points)
+    aa.points = dict()
+
+filename = 'month_2.csv'
+df = pd.read_csv(filename,
+                 index_col=[0])
+print(int(round(time.time())) - now)
+pm = 2
+for index, row in df.iterrows():
+    pp += 1
+    transaction(index,
+                row['accountId'],
+                row['transactionDate'],
+                row['transactionTime'],
+                row['terminalId'],
+                row['transactionAmount'],
+                row['transactionRemain'],
+                row['state'],
+                row['transactionCode'])
+
+for a in list_of_accounts:
+    aa = list_of_accounts[a]
+    nnode = Node(aa.account_id, pm)
+    aa.nodes.append(nnode)
+    aa.allpoints.update(aa.points)
+    aa.points = dict()
+
+filename = 'month_3.csv'
+df = pd.read_csv(filename,
+                 index_col=[0])
+print(int(round(time.time())) - now)
+pm = 3
+for index, row in df.iterrows():
+    pp += 1
+    transaction(index,
+                row['accountId'],
+                row['transactionDate'],
+                row['transactionTime'],
+                row['terminalId'],
+                row['transactionAmount'],
+                row['transactionRemain'],
+                row['state'],
+                row['transactionCode'])
+
+for a in list_of_accounts:
+    aa = list_of_accounts[a]
+    nnode = Node(aa.account_id, pm)
+    aa.nodes.append(nnode)
+    aa.allpoints.update(aa.points)
+    aa.points = dict()
+
+filename = 'month_4.csv'
+df = pd.read_csv(filename,
+                 index_col=[0])
+print(int(round(time.time())) - now)
+pm = 4
+for index, row in df.iterrows():
+    pp += 1
+    transaction(index,
+                row['accountId'],
+                row['transactionDate'],
+                row['transactionTime'],
+                row['terminalId'],
+                row['transactionAmount'],
+                row['transactionRemain'],
+                row['state'],
+                row['transactionCode'])
+
+for a in list_of_accounts:
+    aa = list_of_accounts[a]
+    nnode = Node(aa.account_id, pm)
+    aa.nodes.append(nnode)
+    aa.allpoints.update(aa.points)
+    aa.points = dict()
+
+filename = 'month_5.csv'
+df = pd.read_csv(filename,
+                 index_col=[0])
+print(int(round(time.time())) - now)
+pm = 5
+for index, row in df.iterrows():
+    pp += 1
+    transaction(index,
+                row['accountId'],
+                row['transactionDate'],
+                row['transactionTime'],
+                row['terminalId'],
+                row['transactionAmount'],
+                row['transactionRemain'],
+                row['state'],
+                row['transactionCode'])
+
+for a in list_of_accounts:
+    aa = list_of_accounts[a]
+    nnode = Node(aa.account_id)
+    aa.nodes.append(nnode)
+    aa.allpoints.update(aa.points)
+    aa.points = dict()
 
 print("pp: " + str(pp / 1000) + " time: " + str(int(round(time.time())) - now))
 
@@ -195,9 +299,5 @@ show_plot('zhanghu_51318')
 print(integral_func('zhanghu_51319'))
 print(std_func(('zhanghu_51319')))
 show_plot('zhanghu_51319')
-
-# for x in range(0, 3595):
-#    if len(list_of_customers['guke_' + str(x)].accounts) > 1:
-#        print('guke_' + str(x) + str(len(list_of_customers['guke_' + str(x)].accounts)))
 
 print("END time: " + str(int(round(time.time())) - now))
