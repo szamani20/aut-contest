@@ -35,6 +35,8 @@ class Account:
     def __init__(self, aid):
         self.account_id = aid
         self.points = dict()
+        self.allpoints = dict()
+        self.nodes = []
         # self.customers = []
 
     def __eq__(self, other):
@@ -83,7 +85,7 @@ class Point:
         self.remain = remain
 
     def seconds_from_begin(self):
-        return (self.transaction_datetime - dt.datetime.utcfromtimestamp(0)).total_seconds()
+        return (self.transaction_datetime - dt.datetime.utcfromtimestamp(1284286794)).total_seconds()
 
     def __hash__(self):
         return hash(self.transaction_datetime.ctime())
@@ -93,8 +95,9 @@ class Node:
     def __init__(self, aid, num):
         self.account_id = aid
         self.mnum = num
-        self.points = dict()
-        self.balance_avg = 1
+        # self.points = dict()
+        self.balance_avg = integral_func(aid)
+        self.balance_std = std_func(aid, self.balance_avg)
 
 
 def show_plot(account_id):
@@ -106,7 +109,7 @@ def show_plot(account_id):
         return
 
     a = list_of_accounts[account_id]
-    list_of_points = sorted(a.points.values(), key=lambda x: x.transaction_datetime)
+    list_of_points = sorted(a.allpoints.values(), key=lambda x: x.transaction_datetime)
 
     for p in list_of_points:
         x_data.append(p.transaction_datetime)
@@ -139,61 +142,68 @@ def extract_points_from_aid(aid):
     return np.array(x), np.array(y), min_x, max_x
 
 
+def integral_func(aid):
+    x, y, min_x, max_x = extract_points_from_aid(aid)
+    if len(x) == 1 or len(y) == 1:
+        return y
+    f = InterpolatedUnivariateSpline(x, y, k=1)
+    return f.integral(min_x, max_x) / (max_x - min_x)
+
+
 def std_func(aid, balance):
     x, y, min_x, max_x = extract_points_from_aid(aid)
+    if len(x) == 1 or len(y) == 1:
+        return 0
     y2 = []
     for yy in y:
-        y2.append((yy-balance) ** 2)
+        y2.append((yy - balance) ** 2)
 
     f = InterpolatedUnivariateSpline(x, y2, k=1)
     return f.integral(min_x, max_x) / (max_x - min_x)
 
 
-def integral_func(aid):
+def std_func_discrete(aid):
     x, y, min_x, max_x = extract_points_from_aid(aid)
-    f = InterpolatedUnivariateSpline(x, y, k=1)
-    return f.integral(min_x, max_x) / (max_x - min_x)
+    return np.std(y)
+
+
+def read_month(month_number):
+    filename = 'month_' + str(month_number) + '.csv'
+    df = pd.read_csv(filename,
+                     # nrows=10000,
+                     index_col=[0])
+    for index, row in df.iterrows():
+        transaction(index,
+                    row['accountId'],
+                    row['transactionDate'],
+                    row['transactionTime'],
+                    row['terminalId'],
+                    row['transactionAmount'],
+                    row['transactionRemain'],
+                    row['state'],
+                    row['transactionCode'])
+
+    for aa in list_of_accounts.values():
+        nnode = Node(aa.account_id, month_number)
+        aa.nodes.append(nnode)
+        aa.allpoints.update(aa.points)
+        aa.points = dict()
 
 
 now = int(round(time.time()))
-filename = 'month_1.csv'
 list_of_accounts = dict()
 list_of_customers = dict()
 
-df = pd.read_csv(filename,
-                 index_col=[0])
-pp = 0
-print(int(round(time.time())) - now)
-for index, row in df.iterrows():
-    pp += 1
-    # if pp % 1000 == 0:
-    #    print("pp: " + str(pp / 1000) + " time: " + str(int(round(time.time())) - now))
-    transaction(index,
-                row['accountId'],
-                row['transactionDate'],
-                row['transactionTime'],
-                row['terminalId'],
-                row['transactionAmount'],
-                row['transactionRemain'],
-                row['state'],
-                row['transactionCode'])
+for i in range(1, 2):
+    print(i)
+    read_month(i)
 
-print("pp: " + str(pp / 1000) + " time: " + str(int(round(time.time())) - now))
+sample_accounts = ['zhanghu_51320',
+                   # 'zhanghu_51318',
+                   # 'zhanghu_51319'
+                   ]
 
-print(integral_func('zhanghu_51317'))
-print(std_func(('zhanghu_51317')))
-show_plot('zhanghu_51317')
-
-print(integral_func('zhanghu_51318'))
-print(std_func(('zhanghu_51318')))
-show_plot('zhanghu_51318')
-
-print(integral_func('zhanghu_51319'))
-print(std_func(('zhanghu_51319')))
-show_plot('zhanghu_51319')
-
-# for x in range(0, 3595):
-#    if len(list_of_customers['guke_' + str(x)].accounts) > 1:
-#        print('guke_' + str(x) + str(len(list_of_customers['guke_' + str(x)].accounts)))
+for a in sample_accounts:
+    show_plot(a)
 
 print("END time: " + str(int(round(time.time())) - now))
