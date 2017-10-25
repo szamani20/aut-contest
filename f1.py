@@ -105,14 +105,12 @@ def show_plot(account_id):
         print('Account ID invalid')
         return
 
-        # for p in list_of_accounts[account_id].points:
     a = list_of_accounts[account_id]
     list_of_points = sorted(a.points.values(), key=lambda x: x.transaction_datetime)
 
     for p in list_of_points:
         x_data.append(p.transaction_datetime)
         y_data.append(p.remain)
-        # print(p.transaction_datetime, p.remain)
 
     plt.xlabel('Date')
     plt.plot_date(x_data,
@@ -133,17 +131,12 @@ def extract_points_from_aid(aid):
     for point in sorted(list_of_accounts[aid].points.values(), key=lambda p: p.transaction_datetime):
         x_val = point.seconds_from_begin()
         y_val = point.remain
-        if x_val > max_x:
-            max_x = x_val
-        if x_val < min_x:
-            min_x = x_val
+        max_x = max(x_val, max_x)
+        min_x = min(x_val, min_x)
         x.append(x_val)
         y.append(y_val)
 
-    x = np.array(x)
-    y = np.array(y)
-
-    return x, y, min_x, max_x
+    return np.array(x), np.array(y), min_x, max_x
 
 
 def std_func(aid, balance):
