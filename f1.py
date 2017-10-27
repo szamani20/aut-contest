@@ -53,6 +53,8 @@ class Customer:
     def __init__(self, cid):
         self.customer_id = cid
         self.accounts = dict()
+        self.balance_avg = 0
+        self.balance_std = 0
 
     def __eq__(self, other):
         if other is None:
@@ -96,12 +98,23 @@ class Node:
         self.mnum = num
         # self.points = dict()
         # self.balance_std = std_func(aid, self.balance_avg)
-        if len(list_of_accounts[aid].points) == 0:
-            self.balance_avg = list_of_accounts[aid].nodes[0].balance_avg
-            self.balance_std = list_of_accounts[aid].nodes[0].balance_std
+        if num == 6:
+            bavg = []
+            bstd = []
+            for nn in list_of_accounts[aid].nodes:
+                bavg.append(nn.balance_avg)
+                bstd.append(nn.balance_std)
+
+            self.balance_avg = sum(bavg) / float(len(bavg))
+            self.balance_std = sum(bstd) / float(len(bstd))
+
         else:
-            self.balance_avg = integral_func(aid)
-            self.balance_std = std_func_discrete(aid)
+            if len(list_of_accounts[aid].points) == 0:
+                self.balance_avg = list_of_accounts[aid].nodes[0].balance_avg
+                self.balance_std = list_of_accounts[aid].nodes[0].balance_std
+            else:
+                self.balance_avg = integral_func(aid)
+                self.balance_std = std_func(aid, self.balance_avg)
 
 
 def show_plot(account_id):
@@ -197,10 +210,27 @@ now = int(round(time.time()))
 list_of_accounts = dict()
 list_of_customers = dict()
 
-for i in range(1, 6):
+for i in range(1, 2):
     print(i)
     read_month(i)
     print("read_month : " + str(int(round(time.time())) - now))
+
+for aa in list_of_accounts.values():
+    aa.nodes.append(Node(aa.account_id, 6))
+
+final_str = "customerId,balanceAvg,balanceStd\n"
+
+for cc in list_of_customers.values():
+    bavg = []
+    bstd = []
+    for aa in cc.accounts.values():
+        bavg.append(aa.nodes[len(aa.nodes) - 1].balance_avg)
+        bstd.append(aa.nodes[len(aa.nodes) - 1].balance_std)
+    cc.balance_avg = sum(bavg)
+    cc.balance_std = sum(bstd) / float(len(bstd))
+    final_str += cc.customer_id + ',' + str(cc.balance_avg) + ',' + str(cc.balance_std) + "\n"
+
+np.savetxt('Output.csv', [final_str], fmt='%s')
 
 sample_accounts = ['zhanghu_51320',
                    # 'zhanghu_51318',
