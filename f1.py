@@ -186,7 +186,7 @@ def std_func_discrete(aid):
 def read_month(month_number):
     filename = 'month_' + str(month_number) + '.csv'
     df = pd.read_csv(filename,
-                     nrows=10000,
+                     #nrows=10000,
                      index_col=[0])
     for index, row in df.iterrows():
         transaction(index,
@@ -230,7 +230,7 @@ now = int(round(time.time()))
 list_of_accounts = dict()
 list_of_customers = dict()
 
-for i in range(1, 2):
+for i in range(1, 6):
     print(i)
     read_month(i)
     print("read_month : " + str(int(round(time.time())) - now))
